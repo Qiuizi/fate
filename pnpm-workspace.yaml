@@ -1,0 +1,4 @@
+minimumReleaseAgeExclude:
+  - lunar-javascript@1.7.8
+onlyBuiltDependencies:
+  - esbuild

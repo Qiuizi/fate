@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-yijing/
+release/
+shots/
+tmp/
+.DS_Store
+*.log
+*.tmp
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+.vscode/
+.idea/

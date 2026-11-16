@@ -199,14 +199,16 @@ export function YijingApp({ embedded = false }: { embedded?: boolean }) {
   return (
     <div className={`shell${embedded ? ' embedded' : ''}`}>
       {!embedded && (
-        <header className="top">
-          <div>
-            <div className="kicker">Atelier · I Ching</div>
-            <h1>易经 · 六爻</h1>
-          </div>
-          <a className="back" href="../">返回</a>
-        </header>
+        <a className="back yj-back" href="../">← 返回</a>
       )}
+      <section className="yj-hero">
+        <span className="yj-eyebrow">I CHING · 周易</span>
+        <h1 className="yj-hero-title">
+          <span className="cn">易经</span>
+          <span className="thin">六爻</span>
+        </h1>
+        <p className="yj-hero-sub">铜钱起卦 · 卦爻辞 · 启蒙取辞 · 六爻纳甲</p>
+      </section>
       <div className="tabs">
         <button className={tab === 'cast' ? 'on' : undefined} onClick={() => setTab('cast')} type="button">起卦</button>
         <button className={tab === 'atlas' ? 'on' : undefined} onClick={() => setTab('atlas')} type="button">六十四卦</button>
@@ -230,7 +232,7 @@ export function YijingApp({ embedded = false }: { embedded?: boolean }) {
                 起卦时间
                 <input type="datetime-local" value={clock} onChange={(event) => setClock(event.target.value)} />
               </label>
-              <button className="go" type="button" onClick={cast}>{mode === 'coins' ? '摇卦' : '成卦'}</button>
+              <button className="go cast-go btn-primary" type="button" onClick={cast}>{mode === 'coins' ? '摇卦' : '成卦'}<span className="arrow">→</span></button>
             </div>
             {mode === 'manual' && (
               <div className="manual">

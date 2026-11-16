@@ -1095,3 +1095,294 @@ textarea {
   color: var(--gold, #a67c2e);
 }
 
+
+/* =========================================================================
+   全站小字规则（fate-review）
+   - 八字部分只允许 font-size / color
+   - 其他模块按各自作用域处理
+   ========================================================================= */
+
+/* ---------- 八字：任务清单内的小字（仅 font-size / color） ---------- */
+.uni-brand .brand-word span {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.glyph .yy {
+  font-size: 11px !important;
+  color: var(--muted) !important;
+}
+.hidden-item span,
+.hidden-inline .hi span {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pg-label em {
+  font-size: 10.5px !important;
+  color: var(--muted) !important;
+}
+.el-tag {
+  font-size: 10.5px !important;
+}
+.bazi-role {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pg-head .role-en {
+  font-size: 10.5px !important;
+  color: var(--muted) !important;
+}
+.id-meta i,
+.id-meta span i {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.stat .k em {
+  font-size: 10.5px !important;
+  color: var(--muted) !important;
+}
+.receipt-item .k {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pd-cell .k {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.hd-cell .k {
+  font-size: 12px !important;
+}
+.pg-label {
+  color: var(--muted) !important;
+}
+.tf-meta {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.st-note,
+.classic-note {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.ss-note,
+.x-note {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.ring-hint {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pg-hint {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pd-en {
+  color: var(--muted) !important;
+}
+.panel-title .en,
+.rel-head .en,
+.x-head .en,
+.receipt-head .en {
+  color: var(--muted) !important;
+}
+.chip .cr {
+  font-size: 11px !important;
+  color: var(--muted) !important;
+}
+.field .unit,
+.dfield .unit,
+.combo .unit {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.form-foot {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.df-chev {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.xy-chip em,
+.ln-item .lna {
+  font-size: 11px !important;
+  color: var(--muted) !important;
+}
+.ss-chip i {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.tf-head span {
+  color: var(--muted) !important;
+}
+.pd-hid,
+.hd-range {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.pg-text .kong {
+  font-size: 12px !important;
+}
+.st-tag {
+  font-size: 12px !important;
+}
+.pd-fav {
+  font-size: 12px !important;
+}
+.pg-head .shi,
+.pg-head .shi.hot {
+  font-size: 12px !important;
+}
+.ring-note {
+  font-size: 12px !important;
+}
+.pd-say {
+  font-size: 12px !important;
+}
+.ref-link {
+  font-size: 12px !important;
+}
+.mini-seg button {
+  font-size: 12px !important;
+}
+.seg.mini button {
+  font-size: 12px !important;
+}
+.vbook-toggle {
+  font-size: 12px !important;
+}
+.vb-lbl {
+  font-size: 12px !important;
+}
+.pd-cell .sub {
+  font-size: 12px !important;
+}
+.rel-chip b {
+  font-size: 12px !important;
+}
+@media (max-width: 480px) {
+  .rel-head .ss-note {
+    font-size: 11px !important;
+  }
+}
+
+/* ---------- 首页 Portal ---------- */
+.portal-kicker {
+  font-size: 11px !important;
+  letter-spacing: 0.18em !important;
+  color: #8a5f1e !important;
+  font-weight: 500;
+}
+.portal-card.is-feature .portal-kicker {
+  color: var(--gold-2) !important;
+}
+
+/* ---------- 合盘 ---------- */
+.compat-page .im-role,
+.compat-page .im-ss,
+.compat-page .im-hid,
+.compat-page .im-ny {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  letter-spacing: 0.02em !important;
+  line-height: 1.6 !important;
+}
+.compat-page .cm-tip {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.02em !important;
+}
+.compat-page .cm-hint {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.compat-page .cp-dim-s {
+  font-size: 12px !important;
+  color: #8a5f1e !important;
+  font-weight: 600;
+}
+.compat-page .cm-tag {
+  font-size: 12px !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  font-weight: 500;
+  letter-spacing: 0.02em !important;
+  background: var(--tone) !important;
+  color: var(--ink-2) !important;
+}
+.compat-page .cm-tag.good {
+  background: rgba(102, 176, 143, 0.16) !important;
+  color: #2f6f55 !important;
+}
+.compat-page .cm-tag.mid {
+  background: rgba(167, 119, 43, 0.12) !important;
+  color: #8a5f1e !important;
+}
+.compat-page .cm-tag.warn {
+  background: rgba(224, 112, 92, 0.14) !important;
+  color: #9a3b32 !important;
+}
+.compat-page .cl-chip {
+  border: 0 !important;
+  background: var(--tone) !important;
+  border-radius: 999px !important;
+}
+.compat-page .cl-chip.on {
+  background: var(--ink) !important;
+  color: #fff !important;
+}
+.compat-page .cl-chip em {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+}
+.compat-page .cl-chip.on em {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+.compat-page .cm-score {
+  border-radius: var(--r-xl) !important;
+  box-shadow: var(--elev-2) !important;
+  border: 0 !important;
+}
+
+/* ---------- 历史弹窗 ---------- */
+.hm-tool,
+.hm-gchip {
+  font-size: 12px !important;
+}
+
+/* ---------- 展演：浮层按钮统一为胶囊 ---------- */
+.showcase-tabs {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  box-shadow: var(--elev-1) !important;
+  -webkit-backdrop-filter: saturate(1.5) blur(18px);
+  backdrop-filter: saturate(1.5) blur(18px);
+}
+.showcase-tabs button {
+  color: var(--muted) !important;
+  border-radius: 999px !important;
+}
+.showcase-tabs button.on {
+  background: var(--ink) !important;
+  color: #fff !important;
+}
+.showcase-close,
+.showcase-tabs .showcase-print {
+  background: var(--tone) !important;
+  color: var(--ink-2) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+  padding: 9px 16px !important;
+  min-height: 38px;
+}
+.showcase-close:hover,
+.showcase-tabs .showcase-print:hover {
+  background: var(--tone-2) !important;
+  color: var(--ink) !important;
+}

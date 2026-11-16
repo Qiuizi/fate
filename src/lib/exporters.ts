@@ -380,7 +380,7 @@ h1{font-weight:600;font-size:clamp(44px,9vw,86px);line-height:1;margin:16px 0 10
 @keyframes shimmer{to{background-position:-220% 0}}
 .sub{color:var(--dim);font-size:13.5px;letter-spacing:.04em;line-height:1.9;font-weight:300}
 .idline{display:flex;flex-wrap:wrap;gap:8px 22px;margin:22px 0 8px;color:#cfc9ba;font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:.05em}
-.idline i{font-style:normal;color:var(--dim);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;margin-right:6px;font-family:'Noto Serif SC',serif}
+.idline i{font-style:normal;color:var(--dim);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-right:6px;font-family:'Noto Serif SC',serif}
 .card{margin-top:30px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));backdrop-filter:blur(3px);padding:26px;opacity:0;animation:up .9s .28s forwards;box-shadow:0 30px 80px -40px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.05)}
 .sec-t{font-family:'Cormorant Garamond',serif;letter-spacing:.3em;color:var(--gold);font-size:12px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:12px}
 .sec-t::after{content:'';height:1px;flex:1;background:linear-gradient(90deg,var(--line),transparent)}
@@ -389,12 +389,12 @@ h1{font-weight:600;font-size:clamp(44px,9vw,86px);line-height:1;margin:16px 0 10
 .pillar:hover{transform:translateY(-4px);border-color:rgba(224,180,79,.5);box-shadow:0 16px 40px -20px rgba(224,180,79,.5)}
 .pillar:nth-child(1){animation-delay:.4s}.pillar:nth-child(2){animation-delay:.5s}.pillar:nth-child(3){animation-delay:.6s}.pillar:nth-child(4){animation-delay:.7s}
 .pillar.day{border-color:rgba(224,180,79,.55);background:radial-gradient(120% 80% at 50% 0%,rgba(224,180,79,.12),transparent 70%)}
-.role{font-size:14px;letter-spacing:.2em}.role span{display:block;font-family:'Cormorant Garamond',serif;font-size:10px;letter-spacing:.24em;color:var(--dim);margin-bottom:2px}
-.ten{font-size:11px;color:var(--dim);margin-top:4px;letter-spacing:.06em}
+.role{font-size:14px;letter-spacing:.2em}.role span{display:block;font-family:'Cormorant Garamond',serif;font-size:10.5px;letter-spacing:.24em;color:var(--dim);margin-bottom:2px}
+.ten{font-size:12px;color:var(--dim);margin-top:4px;letter-spacing:.06em}
 .stem,.branch{font-size:clamp(34px,6vw,50px);font-weight:600;line-height:1.08;text-shadow:0 0 24px currentColor}
 .hidden{display:flex;justify-content:center;gap:6px;margin-top:8px;font-size:13px;min-height:16px}
-.hidden i{display:block;font-style:normal;font-size:8.5px;color:var(--dim)}
-.meta{font-size:11.5px;color:#bab4a5;margin-top:6px;letter-spacing:.05em}.meta.dim{color:var(--dim);font-size:10.5px}
+.hidden i{display:block;font-style:normal;font-size:12px;color:var(--dim)}
+.meta{font-size:12px;color:#bab4a5;margin-top:6px;letter-spacing:.05em}.meta.dim{color:var(--dim);font-size:12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
 @media(max-width:680px){.two{grid-template-columns:1fr}.pillars{grid-template-columns:repeat(2,1fr)}}
 .ring-donut-wrap{position:relative;width:100%;max-width:330px;margin:0 auto;aspect-ratio:1}
@@ -403,10 +403,10 @@ h1{font-weight:600;font-size:clamp(44px,9vw,86px);line-height:1;margin:16px 0 10
 @keyframes spin{to{transform:rotate(360deg)}}
 .ring-lbl{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.1;text-align:center;white-space:nowrap}
 .ring-lbl .rlbl{font-family:'Noto Serif SC',serif;font-size:15px;font-weight:600}
-.ring-lbl .rval{font-family:'Cormorant Garamond',serif;font-size:11px;color:#a8a293}
+.ring-lbl .rval{font-family:'Cormorant Garamond',serif;font-size:12px;color:#a8a293}
 .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none}
-.ring-center .rcap{font-family:'Cormorant Garamond',serif;font-size:9px;letter-spacing:.28em;color:#a8a293}
-.ring-center .rcap2{font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:.1em;color:#a8a293}
+.ring-center .rcap{font-family:'Cormorant Garamond',serif;font-size:10.5px;letter-spacing:.28em;color:#a8a293}
+.ring-center .rcap2{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.1em;color:#a8a293}
 .ring-center .rchar{font-family:'Noto Serif SC',serif;font-size:56px;font-weight:700;line-height:1}
 .brow{display:grid;grid-template-columns:44px 1fr 90px;align-items:center;gap:12px;margin:13px 0}
 .bn{font-size:15px;font-weight:600}
@@ -417,13 +417,13 @@ h1{font-weight:600;font-size:clamp(44px,9vw,86px);line-height:1;margin:16px 0 10
 .luckrow{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
 .lk{flex:0 0 auto;min-width:74px;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 6px;transition:.3s}
 .lk.cur{border-color:var(--gold);background:radial-gradient(120% 80% at 50% 0%,rgba(224,180,79,.14),transparent)}
-.lka{font-size:10.5px;color:var(--dim);font-family:'Cormorant Garamond',serif}
+.lka{font-size:12px;color:var(--dim);font-family:'Cormorant Garamond',serif}
 .lkg b{display:block;font-size:23px;line-height:1.05}
-.lky{font-size:10px;color:var(--dim);font-family:'Cormorant Garamond',serif;margin-top:3px}
+.lky{font-size:12px;color:var(--dim);font-family:'Cormorant Garamond',serif;margin-top:3px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;margin-top:22px}
 .stat{background:#111214;padding:15px 16px}
-.stat .k{font-size:11px;color:var(--dim);letter-spacing:.12em}.stat .v{font-size:22px;font-weight:600;letter-spacing:.08em;margin-top:4px}
-.foot{margin-top:26px;color:var(--dim);font-size:11.5px;letter-spacing:.06em;line-height:1.9;border-top:1px solid var(--line);padding-top:16px;opacity:0;animation:up .9s .9s forwards}
+.stat .k{font-size:12px;color:var(--dim);letter-spacing:.12em}.stat .v{font-size:22px;font-weight:600;letter-spacing:.08em;margin-top:4px}
+.foot{margin-top:26px;color:var(--dim);font-size:12px;letter-spacing:.06em;line-height:1.9;border-top:1px solid var(--line);padding-top:16px;opacity:0;animation:up .9s .9s forwards}
 .foot b{color:#cfc9ba;font-weight:500}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 </style></head>

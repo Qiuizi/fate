@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BaziInput, BaziResult, computeBazi, defaultInputFromNow, lunarLeapMonthOf } from '../lib/bazi';
+import { BaziInput, BaziResult, computeBazi, defaultInputFromNow, lunarLeapMonthOf, resolveCivilSolar } from '../lib/bazi';
+import { chinaDSTRange, dstInputKey, dstMinusOneHour, isChinaDST } from '../lib/dstCn';
 import { ELEMENT_META } from '../lib/elements';
 import { computeCompat, type CompatResult } from '../lib/compat';
 import { buildCompatReportHTML } from '../lib/compatReport';
@@ -68,6 +69,31 @@ export default function CompatPage({ a, initialB, onSaveCompat, onBack }: Props)
   useEffect(() => {
     if (isLeapMonth && !leapAvailable) setIsLeapMonth(false);
   }, [isLeapMonth, leapAvailable]);
+  // 用户点过「减 1 小时」后记下结果签名；之后只要日期 / 时间没再改，就显示「已按标准时间调整」
+  const [dstAdjustedKey, setDstAdjustedKey] = useState<string | null>(null);
+  const dstAdjusted = dstAdjustedKey !== null && dstAdjustedKey === dstInputKey({ calendar, year, month, day, isLeapMonth, hour, minute });
+  const dstDate = useMemo(() => {
+    try {
+      const civil = resolveCivilSolar({
+        calendar,
+        year,
+        month,
+        day,
+        isLeapMonth,
+        hour,
+        minute,
+        gender,
+        trueSolar,
+        useEot,
+        longitude,
+        utcOffset,
+        zishiSect,
+      });
+      return isChinaDST(civil.y, civil.m, civil.d) ? civil : null;
+    } catch {
+      return null;
+    }
+  }, [calendar, year, month, day, isLeapMonth, hour, minute, gender, trueSolar, useEot, longitude, utcOffset, zishiSect]);
   const [b, setB] = useState<BaziResult | null>(null);
   const [res, setRes] = useState<CompatResult | null>(null);
 
@@ -195,6 +221,36 @@ export default function CompatPage({ a, initialB, onSaveCompat, onBack }: Props)
               {numInput(minute, setMinute, 0, 59)}
               <span>分</span>
             </div>
+            {dstAdjusted ? (
+              <span className="cm-hint" style={{ flexBasis: '100%', lineHeight: 1.6 }}>
+                已按标准时间调整（减 1 小时）。
+              </span>
+            ) : (
+              dstDate && (
+                <span className="cm-hint" style={{ flexBasis: '100%', lineHeight: 1.6 }}>
+                  该时间处于中国历史夏令时期间
+                  {chinaDSTRange(dstDate.y) ? `（${dstDate.y} 年 ${chinaDSTRange(dstDate.y)!.start}–${chinaDSTRange(dstDate.y)!.end}）` : ''}
+                  。此处只提示、不自动改时间；若填的是当年钟表读数，可
+                  <button
+                    type="button"
+                    className="ref-link"
+                    style={{ marginLeft: 4 }}
+                    onClick={() => {
+                      const next = dstMinusOneHour(calendar, dstDate);
+                      setDstAdjustedKey(dstInputKey({ calendar, ...next }));
+                      setYear(next.year);
+                      setMonth(next.month);
+                      setDay(next.day);
+                      setIsLeapMonth(next.isLeapMonth);
+                      setHour(next.hour);
+                      setMinute(next.minute);
+                    }}
+                  >
+                    减 1 小时
+                  </button>
+                </span>
+              )
+            )}
           </div>
           <div className="cm-row">
             <label>真太阳时</label>

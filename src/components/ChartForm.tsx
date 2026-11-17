@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BaziInput, lunarLeapMonthOf, resolveCivilSolar, trueSolarDelta } from '../lib/bazi';
+import { chinaDSTRange, dstInputKey, dstMinusOneHour, isChinaDST } from '../lib/dstCn';
 import { SHICHEN, shichenOf } from '../lib/elements';
 import { lunarMonthDays } from '../lib/extras';
 import DateTriple from './DateTriple';
@@ -67,7 +68,9 @@ function NumField({
   const [t, setT] = useState(fmt(value));
   useEffect(() => setT(fmt(value)), [value, len]);
   const commit = () => {
-    const n = Math.min(max, Math.max(min, Number(t) || value));
+    // 0 是合法值（00 时 / 00 分）；空串和非法输入才退回原值
+    const parsed = t === '' ? NaN : Number(t);
+    const n = Math.min(max, Math.max(min, Number.isFinite(parsed) ? parsed : value));
     setT(fmt(n));
     onCommit(n);
   };
@@ -97,7 +100,19 @@ function NumField({
 export default function ChartForm({ input, setInput, onSubmit }: Props) {
   const isLunar = input.calendar === 'lunar';
   const [advOpen, setAdvOpen] = useState(false);
+  // 用户点过「减 1 小时」后记下结果签名；之后只要日期 / 时间没再改，就显示「已按标准时间调整」
+  const [dstAdjustedKey, setDstAdjustedKey] = useState<string | null>(null);
+  const dstAdjusted = dstAdjustedKey !== null && dstAdjustedKey === dstInputKey(input);
   const atNow = isCivilNow(input);
+
+  const dstDate = useMemo(() => {
+    try {
+      const civil = resolveCivilSolar(input);
+      return isChinaDST(civil.y, civil.m, civil.d) ? civil : null;
+    } catch {
+      return null;
+    }
+  }, [input]);
 
   const activeShichen = shichenOf(input.hour);
   // 该农历年的闰月：只有录入月份恰好是闰月所在月时，闰月开关才有意义
@@ -184,7 +199,7 @@ export default function ChartForm({ input, setInput, onSubmit }: Props) {
       {/* 生辰 */}
       <div className="form-row">
         <div className="row-key">
-          生辰 <em>{atNow ? '此刻' : 'DATE'}</em>
+          生辰 <em className={atNow ? 'now-label' : undefined}>{atNow ? '此刻' : 'DATE'}</em>
         </div>
         <div className="row-body">
           <div className="date-fields">
@@ -208,6 +223,31 @@ export default function ChartForm({ input, setInput, onSubmit }: Props) {
               此刻
             </button>
           </div>
+          {dstAdjusted ? (
+            <span className="cm-hint" style={{ flexBasis: '100%', lineHeight: 1.6 }}>
+              已按标准时间调整（减 1 小时）。
+            </span>
+          ) : (
+            dstDate && (
+              <span className="cm-hint" style={{ flexBasis: '100%', lineHeight: 1.6 }}>
+                该时间处于中国历史夏令时期间
+                {chinaDSTRange(dstDate.y) ? `（${dstDate.y} 年 ${chinaDSTRange(dstDate.y)!.start}–${chinaDSTRange(dstDate.y)!.end}）` : ''}
+                。此处只提示、不自动改时间；若填的是当年钟表读数，可
+                <button
+                  type="button"
+                  className="ref-link"
+                  style={{ marginLeft: 4 }}
+                  onClick={() => {
+                    const next = dstMinusOneHour(input.calendar, dstDate);
+                    setDstAdjustedKey(dstInputKey({ calendar: input.calendar, ...next }));
+                    setInput(next);
+                  }}
+                >
+                  减 1 小时
+                </button>
+              </span>
+            )
+          )}
         </div>
       </div>
 

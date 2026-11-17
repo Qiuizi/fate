@@ -99,7 +99,7 @@ export default function LuckTimeline({ luck, currentYear, result, compact = fals
           {/* 流年 */}
           <div className="tf-col">
             <div className="tf-head">
-              流年 <span>{selYear ? selYear.year : ''}</span>
+              流年 <span className="tf-head-gz">{selYear ? selYear.year : ''}</span>
             </div>
             <div className="tf-list" key={'ln' + sel}>
               {(active?.liuNian || []).map((ln) => (
@@ -120,7 +120,7 @@ export default function LuckTimeline({ luck, currentYear, result, compact = fals
           {/* 流月 */}
           <div className="tf-col">
             <div className="tf-head">
-              流月 <span>{selYear ? selYear.ganZhi + '年' : ''}</span>
+              流月 <span className="tf-head-gz">{selYear ? selYear.ganZhi + '年' : ''}</span>
             </div>
             <div className="tf-list" key={'mo' + (selYear?.year || '')}>
               {months.map((m) => (
@@ -141,7 +141,7 @@ export default function LuckTimeline({ luck, currentYear, result, compact = fals
           {/* 流日 */}
           <div className="tf-col">
             <div className="tf-head">
-              流日 <span>{selMonth ? selMonth.ganZhi : ''}</span>
+              流日 <span className="tf-head-gz">{selMonth ? selMonth.ganZhi : ''}</span>
             </div>
             <div className="tf-list" key={'dy' + (selMonth?.ganZhi || '')}>
               {days.map((d) => (
@@ -162,7 +162,7 @@ export default function LuckTimeline({ luck, currentYear, result, compact = fals
           {/* 流时 */}
           <div className="tf-col">
             <div className="tf-head">
-              流时 <span>{selDay ? selDay.dayGz : ''}</span>
+              流时 <span className="tf-head-gz">{selDay ? selDay.dayGz : ''}</span>
             </div>
             <div className="tf-list" key={'hr' + (selDay?.date || '')}>
               {hours.map((h) => (

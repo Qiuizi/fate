@@ -2,6 +2,9 @@
  * 用法：pnpm test:e2e   （可用 BASE 覆盖地址，CHROME_PATH 覆盖浏览器路径）
  */
 import puppeteer from 'puppeteer-core';
+import { mkdtempSync, readdirSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BASE = process.env.BASE || 'http://127.0.0.1:5173';
@@ -12,9 +15,30 @@ const expect = (name, cond, extra = '') => {
   if (!cond) failed++;
 };
 
+const downloadDir = mkdtempSync(path.join(tmpdir(), 'fate-e2e-'));
+async function waitForPdf(namePrefix, timeoutMs = 60000) {
+  const end = Date.now() + timeoutMs;
+  let last = null;
+  while (Date.now() < end) {
+    const files = readdirSync(downloadDir).filter(
+      (f) => f.startsWith(namePrefix) && f.toLowerCase().endsWith('.pdf')
+    );
+    if (files.length) {
+      const full = path.join(downloadDir, files[0]);
+      const size = statSync(full).size;
+      if (size > 0 && size === last) return { name: files[0], size };
+      last = size;
+    }
+    await new Promise((r) => setTimeout(r, 300));
+  }
+  return null;
+}
+
 const b = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu'] });
 const errs = [];
 const p = await b.newPage();
+const cdp = await p.createCDPSession();
+await cdp.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadDir });
 p.on('pageerror', (e) => errs.push('PAGE:' + e.message));
 p.on('console', (m) => {
   if (m.type() === 'error') errs.push('CONSOLE:' + m.text().slice(0, 160));
@@ -63,6 +87,13 @@ try {
   expect('断语点击展开', cl.sec);
   expect('命书导出按钮', cl.btns >= 2, `got ${cl.btns}`);
 
+  // 命书 PDF 导出：html2pdf 需真实文档流高度，不能只有一页白纸（旧问题约 3KB）
+  await p.evaluate(() =>
+    [...document.querySelectorAll('.vbook-bar .ref-link')].find((x) => x.textContent?.includes('下载命书PDF'))?.click()
+  );
+  const bookPdf = await waitForPdf('命书');
+  expect('命书 PDF 下载 > 50KB', !!bookPdf && bookPdf.size > 50 * 1024, JSON.stringify(bookPdf));
+
   // 导出菜单层级
   await p.evaluate(() => window.scrollTo(0, 0));
   await new Promise((r) => setTimeout(r, 120));
@@ -99,6 +130,14 @@ try {
   expect('合盘 7 维评分', cp.dims >= 7, `got ${cp.dims}`);
   expect('合盘双方对照', cp.ims === 2, `got ${cp.ims}`);
   expect('合盘大运同步', cp.lucks);
+
+  // 合盘 PDF 导出：同样断言不是空白小文件
+  await p.evaluate(() =>
+    [...document.querySelectorAll('.cm-actions button')].find((x) => x.textContent?.includes('导出PDF'))?.click()
+  );
+  const compatPdf = await waitForPdf('合盘报告');
+  expect('合盘 PDF 下载 > 50KB', !!compatPdf && compatPdf.size > 50 * 1024, JSON.stringify(compatPdf));
+
   await p.evaluate(() => [...document.querySelectorAll('.compat-bar button')][0].click());
   await new Promise((r) => setTimeout(r, 900));
 
@@ -110,6 +149,52 @@ try {
   await p.evaluate(() => document.querySelector('.hm-close').click());
 
   expect('无控制台报错', errs.length === 0, JSON.stringify(errs.slice(0, 3)));
+
+  // 表单：时、分可填 00；夏令时「减 1 小时」跨日时日期一起退回
+  const pf = await b.newPage();
+  pf.on('pageerror', (e) => errs.push('PAGE:' + e.message));
+  await pf.setViewport({ width: 1366, height: 900, deviceScaleFactor: 1 });
+  await pf.goto(BASE + '/?mod=bazi', { waitUntil: 'networkidle2', timeout: 20000 });
+  await new Promise((r) => setTimeout(r, 600));
+  const typeInto = async (sel, val) => {
+    const h = await pf.$(sel);
+    await h.click();
+    await pf.keyboard.down('Control');
+    await pf.keyboard.press('KeyA');
+    await pf.keyboard.up('Control');
+    await pf.keyboard.press('Backspace');
+    await h.type(String(val));
+    await pf.keyboard.press('Enter');
+    await pf.mouse.click(5, 5);
+    await new Promise((r) => setTimeout(r, 150));
+  };
+  const setForm = async (y, m, d, hh, mi) => {
+    await typeInto('.form-card .w-year input', y);
+    await typeInto('.form-card .w-month input', m);
+    await typeInto('.form-card .w-day input', d);
+    await typeInto('.form-card .w-h input', hh);
+    await typeInto('.form-card .w-mi input', mi);
+  };
+  const formVals = () =>
+    pf.evaluate(() => ['.w-year', '.w-month', '.w-day', '.w-h', '.w-mi'].map((q) => document.querySelector(`.form-card ${q} input`)?.value).join('|'));
+  await setForm(2000, 1, 1, '00', '00');
+  expect('表单时、分可填 00', (await formVals()) === '2000|01|01|00|00', await formVals());
+  await pf.evaluate(() => document.querySelector('.form-wrap .btn-primary').click());
+  await new Promise((r) => setTimeout(r, 1200));
+  const zeroRes = await pf.evaluate(() => document.querySelector('.result')?.innerText || '');
+  expect('00:00 能正常排盘', /2000-01-01 00:00/.test(zeroRes), zeroRes.slice(0, 160));
+
+  await pf.goto(BASE + '/?mod=bazi', { waitUntil: 'networkidle2', timeout: 20000 });
+  await new Promise((r) => setTimeout(r, 600));
+  await setForm(1988, 6, 15, '00', '30');
+  const dstHint = await pf.evaluate(() => [...document.querySelectorAll('.form-card .cm-hint')].some((x) => x.textContent.includes('夏令时')));
+  expect('1988-06-15 00:30 出现夏令时提示', dstHint);
+  await pf.evaluate(() => [...document.querySelectorAll('.form-card .cm-hint button')].find((x) => x.textContent.includes('减 1 小时'))?.click());
+  await new Promise((r) => setTimeout(r, 300));
+  expect('减 1 小时跨日退到 1988-06-14 23:30', (await formVals()) === '1988|06|14|23|30', await formVals());
+  const adjusted = await pf.evaluate(() => [...document.querySelectorAll('.form-card .cm-hint')].some((x) => x.textContent.includes('已按标准时间调整')));
+  expect('调整后提示变为「已按标准时间调整」', adjusted);
+  await pf.close();
 
   // 手机端
   const pm = await b.newPage();

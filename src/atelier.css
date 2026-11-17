@@ -1386,3 +1386,18 @@ textarea {
   background: var(--tone-2) !important;
   color: var(--ink) !important;
 }
+
+/* ---------- 第 5 轮：导出菜单窄屏 / 时间轴干支头 / 「此刻」 ---------- */
+@media (max-width: 600px) {
+  .export-pop {
+    right: auto !important;
+    left: 0 !important;
+    max-width: calc(100vw - 32px);
+  }
+}
+.tf-head .tf-head-gz {
+  font-size: 12px !important;
+}
+.form-card .row-key em.now-label {
+  font-size: 12px !important;
+}

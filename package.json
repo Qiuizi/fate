@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "build:yijing": "vite build --config vite.yijing.config.ts && node scripts/prepare-yijing-embed.mjs",
+    "build:yijing": "tsx scripts/verify-yijing.ts",
     "desktop": "npm run build && node scripts/launch-electron.mjs",
     "desktop:build": "npm run build && electron-builder --win portable nsis",
     "typecheck": "tsc --noEmit",

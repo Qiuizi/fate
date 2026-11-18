@@ -3,10 +3,11 @@
  */
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
+import { DEMO_QUERY } from './demo-birth.mjs';
 
 const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BASE = process.env.BASE || 'http://127.0.0.1:5173';
-const QUERY = process.env.QUERY || 'y=1986&m=5&d=29&h=10&mi=30&g=male';
+const QUERY = process.env.QUERY || DEMO_QUERY;
 const OUT = process.env.OUT || 'shots/vbook-long.png';
 const PAGE_SEL = '.vcover, .vfrontis, .vpreface, .vtoc, .vspread';
 const FONT_LINK =

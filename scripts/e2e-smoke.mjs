@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer-core';
 import { mkdtempSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { DEMO_QUERY } from './demo-birth.mjs';
 
 const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BASE = process.env.BASE || 'http://127.0.0.1:5173';
@@ -14,6 +15,66 @@ const expect = (name, cond, extra = '') => {
   console.log(`${cond ? '✓' : '✗'} ${name}${cond ? '' : ' ' + extra}`);
   if (!cond) failed++;
 };
+
+async function checkSectionNav(page, viewport) {
+  const active = () => page.$eval('.sec-nav button.on', (button) => button.textContent.trim()).catch(() => '');
+  const waitForActive = (label) => page.waitForFunction(
+    (text) => document.querySelector('.sec-nav button.on')?.textContent.trim() === text,
+    { timeout: 2000 },
+    label,
+  ).then(() => true, () => false);
+
+  for (const [id, label] of [['sec-classics', '断语'], ['sec-luck', '大运'], ['sec-classics', '断语']]) {
+    await page.evaluate((section) => {
+      document.getElementById(section).scrollIntoView({ block: 'start', behavior: 'instant' });
+    }, id);
+    expect(`${viewport} 滚动高亮「${label}」`, await waitForActive(label), await active());
+  }
+  await page.evaluate(() => {
+    const top = document.getElementById('sec-luck').getBoundingClientRect().top;
+    window.scrollTo({ top: window.scrollY + top - 140, behavior: 'instant' });
+  });
+  const luckActive = await waitForActive('大运');
+  const luckTop = await page.$eval('#sec-luck', (section) => section.getBoundingClientRect().top);
+  expect(`${viewport} 大运距视口顶部约 140px 时高亮「大运」`, luckActive && Math.abs(luckTop - 140) <= 2, `${await active()} @ ${luckTop}px`);
+
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  expect(`${viewport} 页底高亮「口径」`, await waitForActive('口径'), await active());
+
+  // 逐帧检查点击选中后没有跳到途经的章节，且动画结束时标题尽量贴近导航。
+  const sections = ['sec-pillars', 'sec-classics', 'sec-luck', 'sec-params', 'sec-receipt'];
+  const labels = await page.$$eval('.sec-nav button', (buttons) => buttons.map((button) => button.textContent.trim()));
+  const clicks = [];
+  for (const [index, id] of sections.entries()) {
+    clicks.push(await page.evaluate(async (i, sectionId) => {
+      const nav = document.querySelector('.sec-nav');
+      const section = document.getElementById(sectionId);
+      const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      let ended = false;
+      const finish = () => { ended = true; };
+      document.addEventListener('scrollend', finish, { once: true });
+      nav.querySelectorAll('button')[i].click();
+
+      const seen = new Set();
+      const deadline = performance.now() + 2000;
+      do {
+        await frame();
+        seen.add(nav.querySelector('button.on')?.textContent.trim());
+      } while (!ended && performance.now() < deadline);
+      document.removeEventListener('scrollend', finish);
+
+      const pageHeight = document.documentElement;
+      const remainingScroll = pageHeight.scrollHeight - pageHeight.clientHeight - window.scrollY;
+      const navBottom = parseFloat(getComputedStyle(nav).top) + nav.offsetHeight;
+      const gap = section.getBoundingClientRect().top - navBottom;
+      const minGap = Math.max(0, gap - remainingScroll);
+      return { ended, seen: [...seen], gap, minGap };
+    }, index, id));
+  }
+  const clicksMatch = labels.join('/') === '四柱/断语/大运/参数/口径' &&
+    clicks.every(({ ended, seen, gap, minGap }, i) => ended && seen.join() === labels[i] && gap >= -1 && gap <= minGap + 4);
+  expect(`${viewport} 导航顺序与页面一致，五项点击定位且高亮保持稳定`, clicksMatch, JSON.stringify(clicks));
+}
 
 const downloadDir = mkdtempSync(path.join(tmpdir(), 'fate-e2e-'));
 async function waitForFile(namePrefix, ext, timeoutMs = 20000) {
@@ -79,6 +140,7 @@ try {
   expect('结果页渲染', res.result);
   expect('结果页 5 章节', res.secs === 5, `got ${res.secs}`);
   expect('结果页无横向溢出', res.overflow <= 0, `overflow ${res.overflow}`);
+  await checkSectionNav(p, '1366×900');
 
   // 下钻
   for (const [col, idx] of [[0, 1], [1, 2], [2, 1], [3, 1], [4, 2]]) {
@@ -256,10 +318,12 @@ try {
   // 手机端
   const pm = await b.newPage();
   await pm.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
-  await pm.goto(BASE + '/?y=1986&m=5&d=29&h=10&mi=30&g=male', { waitUntil: 'networkidle2', timeout: 20000 });
+  await pm.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  await pm.goto(`${BASE}/?${DEMO_QUERY}`, { waitUntil: 'networkidle2', timeout: 20000 });
   await new Promise((r) => setTimeout(r, 500));
   const mob = await pm.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect('手机端无横向溢出', mob <= 0, `overflow ${mob}`);
+  await checkSectionNav(pm, '390×844');
 } catch (e) {
   failed++;
   console.error('E2E 异常：', e.message);

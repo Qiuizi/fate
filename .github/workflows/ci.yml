@@ -25,5 +25,7 @@ jobs:
         run: npm run test:ai
       - name: 交叉核对（500 个合成时刻）
         run: npm run test:crosscheck
+      - name: 易经引擎自检
+        run: npm run build:yijing
       - name: 构建
-        run: npm run build:yijing && npm run build
+        run: npm run build

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BaziResult } from '../lib/bazi';
 import { ELEMENT_META, Element, ELEMENTS } from '../lib/elements';
@@ -26,6 +26,41 @@ interface Props {
 
 const fmtTime = (s: string) => (s ? s.slice(5, 16) : '');
 const pad = (x: number) => String(x).padStart(2, '0');
+const PRO_NAV = [
+  { id: 'sec-pillars', label: '四柱' },
+  { id: 'sec-classics', label: '断语' },
+  { id: 'sec-luck', label: '大运' },
+  { id: 'sec-params', label: '参数' },
+  { id: 'sec-receipt', label: '口径' },
+];
+const SIMPLE_NAV = PRO_NAV.filter(({ id }) => id === 'sec-pillars' || id === 'sec-luck');
+
+function sectionScrollStops(root: HTMLElement | null, nav: HTMLElement | null, items: typeof PRO_NAV) {
+  if (!root?.getClientRects().length || !nav) return [];
+
+  const page = document.documentElement;
+  const maxScroll = Math.max(0, page.scrollHeight - page.clientHeight);
+  const navBottom = (parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight;
+  const activationLine = navBottom + Math.max(0, page.clientHeight - navBottom) * 0.3;
+  const sections = items.flatMap(({ id }) => {
+    const el = root.querySelector<HTMLElement>(`#${id}`);
+    return el?.getClientRects().length ? [{ id, top: el.getBoundingClientRect().top + window.scrollY }] : [];
+  });
+  const lastTop = sections.at(-1)?.top ?? 0;
+
+  // 页尾仍给每个章节留出独立的高亮区间，最后一节最迟在页底点亮。
+  const stops = sections.map(({ id, top }) => ({
+    id,
+    activeFrom: Math.max(0, Math.ceil(Math.min(top - activationLine, maxScroll - (lastTop - top) / 2))),
+    headingTarget: Math.floor(top - navBottom),
+  }));
+  // 点击时尽量让标题贴到导航下方，页尾最多滚到下一节的高亮线之前。
+  return stops.map(({ id, activeFrom, headingTarget }, index) => {
+    const next = stops[index + 1];
+    const limit = next ? Math.min(maxScroll, next.activeFrom - 2) : maxScroll;
+    return { id, activeFrom, clickTarget: Math.max(activeFrom, Math.min(headingTarget, limit)) };
+  });
+}
 
 export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
   const [mode, setMode] = useState<'visible' | 'weighted'>('weighted');
@@ -44,9 +79,11 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
     // 断语章节只在「专业」视图渲染；从普通视图点日主等入口时先切过去
     if (key) setDetail('pro');
     setClassicOpen(key);
-    if (key) window.setTimeout(() => document.getElementById('sec-classics')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    if (key) window.setTimeout(() => scrollToSection('sec-classics', PRO_NAV), 60);
   };
   const navRef = useRef<HTMLElement | null>(null);
+  const pendingScroll = useRef<number | null>(null);
+  const scrollTimer = useRef<number | undefined>(undefined);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const indRef = useRef<HTMLSpanElement | null>(null);
   const progRef = useRef<HTMLDivElement | null>(null);
@@ -118,19 +155,41 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
     flash(fmt === 'md' ? '已下载 AI 提示词（.md）' : '已下载命盘数据（.json）');
   };
 
-  const navItems =
-    detail === 'pro'
-      ? [
-          { id: 'sec-pillars', label: '四柱' },
-          { id: 'sec-luck', label: '大运' },
-          { id: 'sec-classics', label: '断语' },
-          { id: 'sec-params', label: '参数' },
-          { id: 'sec-receipt', label: '口径' },
-        ]
-      : [
-          { id: 'sec-pillars', label: '四柱' },
-          { id: 'sec-luck', label: '大运' },
-        ];
+  const navItems = detail === 'pro' ? PRO_NAV : SIMPLE_NAV;
+  const clearPendingScroll = useCallback(() => {
+    pendingScroll.current = null;
+    window.clearTimeout(scrollTimer.current);
+    scrollTimer.current = undefined;
+  }, []);
+  const updateSection = useCallback(() => {
+    const scrollY = window.scrollY;
+    // 平滑滚动途中保留用户点击的章节，允许浏览器在目标附近取整。
+    if (pendingScroll.current !== null) {
+      if (Math.abs(pendingScroll.current - scrollY) > 2) return;
+      clearPendingScroll();
+    }
+    const stops = sectionScrollStops(rootRef.current, navRef.current, PRO_NAV);
+    if (!stops.length) return;
+    const current = stops.filter(({ activeFrom }) => Math.round(scrollY) >= activeFrom).at(-1);
+    setActiveSec((current ?? stops[0]).id);
+  }, [clearPendingScroll, rootRef]);
+  const finishScroll = useCallback(() => {
+    if (pendingScroll.current === null) return;
+    clearPendingScroll();
+    updateSection();
+  }, [clearPendingScroll, updateSection]);
+
+  const scrollToSection = (id: string, items = navItems) => {
+    const stop = sectionScrollStops(rootRef.current, navRef.current, items).find((item) => item.id === id);
+    if (!stop) return;
+    clearPendingScroll();
+    setActiveSec(id);
+    if (Math.round(window.scrollY) !== stop.clickTarget) {
+      pendingScroll.current = stop.clickTarget;
+      scrollTimer.current = window.setTimeout(finishScroll, 1200);
+    }
+    window.scrollTo({ top: stop.clickTarget, behavior: 'smooth' });
+  };
 
   const showcaseHtml = useMemo(() => (showCase ? buildChartHTML(result) : ''), [showCase, result]);
   const bookHtml = useMemo(
@@ -148,28 +207,28 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
   }, [showCase]);
 
   useEffect(() => {
-    const ids = (detail === 'pro'
-      ? ['sec-pillars', 'sec-luck', 'sec-classics', 'sec-params', 'sec-receipt']
-      : ['sec-pillars', 'sec-luck']) as string[];
-    const els = ids.map((id) => document.getElementById(id)).filter((x): x is HTMLElement => !!x);
-    if (!('IntersectionObserver' in window) || !els.length) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActiveSec((e.target as HTMLElement).id);
-        });
-      },
-      { rootMargin: '-72px 0px -62% 0px', threshold: 0 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [detail]);
-
-  // 切到「普通」后，断语/参数/口径章节被隐藏，活动章节回到四柱，否则指示条停在旧位置
-  useEffect(() => {
-    if (!navItems.some((i) => i.id === activeSec)) setActiveSec('sec-pillars');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detail]);
+    const root = rootRef.current;
+    const nav = navRef.current;
+    const interruptEvents = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+    updateSection();
+    window.addEventListener('scroll', updateSection, { passive: true });
+    document.addEventListener('scrollend', finishScroll);
+    for (const event of interruptEvents) {
+      window.addEventListener(event, finishScroll, { capture: true, passive: true });
+    }
+    window.addEventListener('resize', updateSection);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateSection);
+    if (root) observer?.observe(root);
+    if (nav) observer?.observe(nav);
+    return () => {
+      clearPendingScroll();
+      window.removeEventListener('scroll', updateSection);
+      document.removeEventListener('scrollend', finishScroll);
+      for (const event of interruptEvents) window.removeEventListener(event, finishScroll, true);
+      window.removeEventListener('resize', updateSection);
+      observer?.disconnect();
+    };
+  }, [clearPendingScroll, finishScroll, navItems, rootRef, updateSection]);
 
   // 章节导航滑动指示条
   useEffect(() => {
@@ -303,7 +362,8 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
               btnRefs.current[i] = el;
             }}
             className={activeSec === it.id ? 'on' : ''}
-            onClick={() => document.getElementById(it.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            aria-current={activeSec === it.id ? 'location' : undefined}
+            onClick={() => scrollToSection(it.id)}
           >
             {it.label}
           </button>

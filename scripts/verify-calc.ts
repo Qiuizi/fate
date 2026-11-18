@@ -1,6 +1,7 @@
 import { computeBazi, BaziInput, resolveCivilSolar, sanitizeInput } from '../src/lib/bazi';
 import { dstMinusOneHour, isChinaDST } from '../src/lib/dstCn';
 
+// synthetic demo birth, not a real person
 const BASE: BaziInput = {
   calendar: 'solar',
   year: 2000,
@@ -28,7 +29,7 @@ interface Case {
 
 const cases: Case[] = [
   { name: '2000-01-01 12:00（元旦）', input: { year: 2000, month: 1, day: 1, hour: 12 }, full: ['己卯', '丙子', '戊午', '戊午'] },
-  { name: '1986-05-29 10:30（示例）', input: { year: 1986, month: 5, day: 29, hour: 10, minute: 30 }, full: ['丙寅', '癸巳', '癸酉', '丁巳'] },
+  { name: '元旦合成示例（同一时刻的农历录入）', input: { calendar: 'lunar', year: 1999, month: 11, day: 25 }, full: ['己卯', '丙子', '戊午', '戊午'], solarPrefix: '2000-01-01' },
   { name: '1990-02-03（立春前）', input: { year: 1990, month: 2, day: 3, hour: 12 }, year: '己巳' },
   { name: '1990-02-05（立春后）', input: { year: 1990, month: 2, day: 5, hour: 12 }, full: ['庚午', '戊寅', '辛丑', '甲午'] },
   { name: '2024-02-04 10:00（立春前）', input: { year: 2024, month: 2, day: 4, hour: 10 }, year: '癸卯' },

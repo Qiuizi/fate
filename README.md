@@ -33,6 +33,12 @@
 
 - **口径回执**：每张命盘逐项列出换年、换月、日柱、真太阳时、有效时刻与节气区间的实际取法，结果可核对、可复现。
 - **独立交叉核对**：500 个合成时刻（含交节前后、23:00–01:00 子时边界、真太阳时）与不依赖 lunar-javascript 的参考实现（PyEphem 天文计算 + 儒略日数推干支，sxtwl 复核）逐项比对：四柱 4000/4000 一致，交节时刻差 ≤ 57 秒，真太阳时差 ≤ 44 秒，起运方向全部一致。详见[交叉核对](#交叉核对)。
+- **复制给 AI 与 Agent Skill**：一键复制排好的命盘与解读提示词，粘贴到任意 AI 即可；程序排盘，AI 只解读（详见[复制给 AI](#ai-export)）。同一套解读规则打包成 [Agent Skill](skills/fate-bazi-reader/SKILL.md)，可用下面的命令装进 Claude Code 等支持 Agent Skill 的工具：
+
+  ```bash
+  npx skills add Qiuizi/fate
+  ```
+
 - **字体随仓库自托管**：不再请求 Google Fonts，国内网络下字形与线上一致。
 
 ## 目录
@@ -64,7 +70,7 @@
 - **古籍断语与竖排命书**：分类长文，点命盘元素直达对应断语；竖排线装命书（封面题签、卷首五行图、目录、鱼尾版心、朱墨套印），可打印或另存 PDF。
 - **双人合盘**：契合总分 + 7 维评分（日主关系、生肖合冲、夫妻宫、五行互补、用神互济、纳音、十神互动）、双方四柱与大运同步，可导出 HTML / PDF。
 - **历史与导出**：本机自动存档、命名分组、JSON 备份导入；分享深链、分享卡片 PNG；HTML / Markdown（含结构化 JSON）/ PDF 导出。
-- **复制给 AI**：导出菜单一键复制「解读提示词 + 命盘」，粘贴到任意 AI 对话即可（精简版约 3 千字，不重复附 JSON）；下载的 .md 为完整版（另附 `fate.bazi.ai.v1` JSON），.json 为纯数据。程序排盘，AI 只解读：数据与页面上的盘逐项一致（含口径回执、出生时刻临近时辰分界或交节时的临界提醒、今年前后 5 年的流年时间表），提示词要求 AI 不得改盘、每条判断注明依据、区分盘面事实与推断并标把握、信号冲突时说明取舍、把合冲只当「存在」、按「旺衰 → 格局 → 调候 → 喜用忌」写用神推导链，并在末尾自检。提示词最后留有「我想问」：写下具体问题（事业、感情、某一年）就只围绕问题回答。可选「隐去生辰」（不含出生日期、时刻、地点，保留四柱与大运；注意四柱本身仍可反推大致生日）；合盘页顶栏可复制双方命盘与评分（默认隐去生辰）。同一套规则也打包成 Agent Skill：[`skills/fate-bazi-reader/SKILL.md`](skills/fate-bazi-reader/SKILL.md)。
+- <a id="ai-export"></a>**复制给 AI**：导出菜单一键复制「解读提示词 + 命盘」，粘贴到任意 AI 对话即可（精简版约 3 千字，不重复附 JSON）；下载的 .md 为完整版（另附 `fate.bazi.ai.v1` JSON），.json 为纯数据。程序排盘，AI 只解读：数据与页面上的盘逐项一致（含口径回执、出生时刻临近时辰分界或交节时的临界提醒、今年前后 5 年的流年时间表），提示词要求 AI 不得改盘、每条判断注明依据、区分盘面事实与推断并标把握、信号冲突时说明取舍、把合冲只当「存在」、按「旺衰 → 格局 → 调候 → 喜用忌」写用神推导链，并在末尾自检。提示词最后留有「我想问」：写下具体问题（事业、感情、某一年）就只围绕问题回答。可选「隐去生辰」（不含出生日期、时刻、地点，保留四柱与大运；注意四柱本身仍可反推大致生日）；合盘页顶栏可复制双方命盘与评分（默认隐去生辰）。同一套规则也打包成 Agent Skill：[`skills/fate-bazi-reader/SKILL.md`](skills/fate-bazi-reader/SKILL.md)。
 
 ### 紫微斗数
 
@@ -142,11 +148,11 @@ npm run desktop        # 构建后在桌面窗口启动
 npm run desktop:build  # 生成 release/ 下的便携版和安装版 exe
 ```
 
-分享深链示例：
+分享深链示例。两条八字链接使用同一合成生辰（公历 2000-01-01 12:00，仅供演示）。
 
 ```
-/?y=1986&m=5&d=29&h=10&mi=30&g=male
-/?cal=lunar&y=1990&m=5&d=15&h=15&mi=0&g=female&leap=1
+/?y=2000&m=1&d=1&h=12&mi=0&g=male
+/?cal=lunar&y=1999&m=11&d=25&h=12&mi=0&g=male
 /?mod=yijing
 ```
 
@@ -157,19 +163,18 @@ npm run desktop:build  # 生成 release/ 下的便携版和安装版 exe
 | `npm run dev` | 开发服务器 |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run build` | 类型检查 + 生产构建到 `dist/` |
-| `npm run build:yijing` | 构建易经独立子页并放进 `public/yijing/` |
+| `npm run build:yijing` | 易经引擎自检（保留原命令名，易经由主应用构建） |
 | `npm run test:calc` | 排盘准确性回归（48 项断言） |
 | `npm run test:ai` | 「复制给 AI」导出自检：数据与排盘逐项一致、精简版事实齐全、临界提醒、隐私模式不含生辰、SKILL.md 同步 |
 | `npm run gen:ai-skill` | 由导出规则重新生成 `skills/fate-bazi-reader/SKILL.md` |
 | `npm run test:crosscheck` | 与独立参考实现交叉核对（500 个时刻）；`crosscheck:gen` 重新生成参考数据 |
-| `npx tsx scripts/verify-yijing.ts` | 易经引擎自检（64 卦、编码唯一、纳甲） |
-| `npm run test:e2e` | 八字端到端冒烟（33 项，需先启动 dev；可用 `BASE=` 指定地址） |
+| `npm run test:e2e` | 八字端到端冒烟（45 项，需先启动 dev；可用 `BASE=` 指定地址） |
 | `npm run test:unified` | 三模块联合冒烟（16 项，同上） |
 | `npm run export:vbook` | 竖排命书整本长图 |
 | `npm run fonts:build` | 重新生成自托管字体子集（需 Python 与 fonttools、brotli） |
 | `npm run desktop` / `desktop:build` | 桌面版运行 / 打包 |
 
-端到端测试用本机 Chrome（`puppeteer-core`），路径可用 `CHROME_PATH` 覆盖。CI（`.github/workflows/ci.yml`）在每次推送时跑类型检查、`test:calc`、`test:ai`、`test:crosscheck` 与构建。
+端到端测试用本机 Chrome（`puppeteer-core`），路径可用 `CHROME_PATH` 覆盖。CI（`.github/workflows/ci.yml`）在每次推送时跑类型检查、`test:calc`、`test:ai`、`test:crosscheck`、易经引擎自检与构建。
 
 ## 目录结构
 
@@ -189,7 +194,7 @@ data/yijing/
   SOURCE.md            # 数据来源、修订号与核对说明
 public/
   ziwei/               # 紫微斗数子页（构建产物）与知识库
-  yijing/              # 易经独立子页（build:yijing 产出）
+  yijing/index.html    # 兼容易经独立子页旧书签的跳转页
   fonts/               # 自托管字体子集（woff2 + CSS + OFL 许可）
 electron/              # 桌面版主进程
 scripts/               # 测试、构建辅助脚本
@@ -202,12 +207,13 @@ Pages 从 `main` 分支的 `/docs` 发布：
 
 - 介绍页：<https://qiuizi.github.io/fate/>
 - 在线应用：<https://qiuizi.github.io/fate/app/>
+- 易经入口为 `/fate/app/?mod=yijing`，旧书签 `/fate/app/yijing/` 会自动跳转。
 
 `docs/app/` 是 `npm run build` 的产物（`base: './'`，可放在任意子路径）。更新应用后：
 
 ```bash
-npm run build:yijing && npm run build
-# 用 dist/ 覆盖 docs/app/ 后提交推送
+npm run build
+# 用 dist/ 全量替换 docs/app/ 后提交推送
 ```
 
 ## 数据来源与许可

@@ -12,7 +12,7 @@ const CompatPage = lazy(() => import('./components/CompatPage'));
 /** 页面载入时取本机当前时间，不预填固定生辰。地点等口径仍用通用默认值。 */
 const DEFAULT_INPUT: BaziInput = defaultInputFromNow();
 
-/** 支持通过 URL 参数深链分享命盘，例如 ?y=1986&m=5&d=29&h=10&mi=30 */
+/** 支持通过 URL 参数深链分享命盘。示例见 README。 */
 function readUrlInput(): { input: BaziInput; auto: boolean } {
   const q = new URLSearchParams(window.location.search);
   if (![...q.keys()].length) return { input: DEFAULT_INPUT, auto: false };

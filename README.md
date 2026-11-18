@@ -6,10 +6,11 @@
 
 **八字 · 紫微 · 易经，一个外壳里的确定性排盘工具。**
 
-*A unified Chinese metaphysics workbench — BaZi (Four Pillars), Zi Wei Dou Shu and I Ching — as a web app and a Windows desktop app.*
+*A unified Chinese metaphysics workbench — BaZi (Four Pillars), Zi Wei Dou Shu and I Ching — as a web app, with an optional Windows desktop build.*
 
 [![Pages](https://img.shields.io/badge/介绍页-qiuizi.github.io%2Ffate-a7772b?style=flat-square)](https://qiuizi.github.io/fate/)
 [![在线体验](https://img.shields.io/badge/在线体验-app-141519?style=flat-square)](https://qiuizi.github.io/fate/app/)
+[![CI](https://github.com/Qiuizi/fate/actions/workflows/ci.yml/badge.svg)](https://github.com/Qiuizi/fate/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/code-MIT-66b08f?style=flat-square)](./LICENSE)
 [![React](https://img.shields.io/badge/React-19-6f9fd8?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-6f9fd8?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -28,11 +29,18 @@
 
 > 准确为先，审美其后。所有断语、评分都只是参考，不做确定结论。
 
+**亮点**
+
+- **口径回执**：每张命盘逐项列出换年、换月、日柱、真太阳时、有效时刻与节气区间的实际取法，结果可核对、可复现。
+- **独立交叉核对**：500 个合成时刻（含交节前后、23:00–01:00 子时边界、真太阳时）与不依赖 lunar-javascript 的参考实现（PyEphem 天文计算 + 儒略日数推干支，sxtwl 复核）逐项比对：四柱 4000/4000 一致，交节时刻差 ≤ 57 秒，真太阳时差 ≤ 44 秒，起运方向全部一致。详见[交叉核对](#交叉核对)。
+- **字体随仓库自托管**：不再请求 Google Fonts，国内网络下字形与线上一致。
+
 ## 目录
 
 - [三个模块](#三个模块)
 - [界面预览](#界面预览)
 - [计算口径](#计算口径)
+- [交叉核对](#交叉核对)
 - [快速开始](#快速开始)
 - [脚本一览](#脚本一览)
 - [目录结构](#目录结构)
@@ -46,7 +54,7 @@
 
 ### 八字排盘
 
-- **排盘内核**：立春换年、十二节令换月、连续干支纪日、五鼠遁时；**真太阳时**（经度校正 + NOAA 均时差），出生地可搜索全国 2890 个区县（内建经度）；23:00 / 00:00 两种子时换日；农历输入支持闰月与真实大小月。
+- **排盘内核**：立春换年、十二节令换月、连续干支纪日、五鼠遁时；**真太阳时**（经度校正 + NOAA 均时差），出生地可搜索全国 2890 个区县（内建经度）；23:00 / 00:00 两种子时换日；农历输入支持闰月与真实大小月；出生时间落在中国历史夏令时期间（1935–1979 年间若干年、1986–1991 年）时给出提示，可一键减 1 小时按标准时间排盘。
 - **计算口径回执**：逐项列出本次命盘实际用到的换年、换月、日柱、真太阳时、有效时刻与节气区间，可核对、可复现。
 - **四柱表**：干支按五行上色，附藏干、十神、纳音、星运、自坐、空亡。
 - **五行环**：弧长按比例编码气数（明字 / 含藏干加权），与四柱、神煞、十神之间**按颜色联动高亮**。
@@ -56,6 +64,7 @@
 - **古籍断语与竖排命书**：分类长文，点命盘元素直达对应断语；竖排线装命书（封面题签、卷首五行图、目录、鱼尾版心、朱墨套印），可打印或另存 PDF。
 - **双人合盘**：契合总分 + 7 维评分（日主关系、生肖合冲、夫妻宫、五行互补、用神互济、纳音、十神互动）、双方四柱与大运同步，可导出 HTML / PDF。
 - **历史与导出**：本机自动存档、命名分组、JSON 备份导入；分享深链、分享卡片 PNG；HTML / Markdown（含结构化 JSON）/ PDF 导出。
+- **复制给 AI**：导出菜单一键复制「解读提示词 + 命盘」，粘贴到任意 AI 对话即可（精简版约 3 千字，不重复附 JSON）；下载的 .md 为完整版（另附 `fate.bazi.ai.v1` JSON），.json 为纯数据。程序排盘，AI 只解读：数据与页面上的盘逐项一致（含口径回执、出生时刻临近时辰分界或交节时的临界提醒、今年前后 5 年的流年时间表），提示词要求 AI 不得改盘、每条判断注明依据、区分盘面事实与推断并标把握、信号冲突时说明取舍、把合冲只当「存在」、按「旺衰 → 格局 → 调候 → 喜用忌」写用神推导链，并在末尾自检。提示词最后留有「我想问」：写下具体问题（事业、感情、某一年）就只围绕问题回答。可选「隐去生辰」（不含出生日期、时刻、地点，保留四柱与大运；注意四柱本身仍可反推大致生日）；合盘页顶栏可复制双方命盘与评分（默认隐去生辰）。同一套规则也打包成 Agent Skill：[`skills/fate-bazi-reader/SKILL.md`](skills/fate-bazi-reader/SKILL.md)。
 
 ### 紫微斗数
 
@@ -95,9 +104,25 @@
 | 时柱 | 依日干五鼠遁 |
 | 真太阳时 | 经度校正 `4×(经度−120°)` + NOAA 均时差 |
 | 子时换日 | 23:00 换日 / 00:00 换日，可切换 |
+| 节气 | 按交节精确时刻判断（交节当天、交节前出生仍属上一个节） |
+| 夏令时 | 只提示，用户确认后才减 1 小时 |
 | 农历输入 | 支持闰月，按真实大小月天数 |
 | 六爻取辞 | 《易学启蒙通释》变爻规则 |
 | 纳甲 | 《增删卜易》八宫、六亲、世应、六神、伏神 |
+
+## 交叉核对
+
+`npm run test:crosscheck` 用随仓库提交的参考数据（`scripts/crosscheck/cases.json`）逐项核对八字内核，结果写在 `scripts/crosscheck/summary.json`。参考数据由 `npm run crosscheck:gen`（需 Python 与 `pip install ephem sxtwl`）按固定种子重新生成，全部是合成时刻，不含真实生辰。
+
+| 项目 | 样本 | 结果 |
+|---|---|---|
+| 四柱（两种子时口径 × 四柱） | 500 个时刻，4000 项 | 全部一致 |
+| 前后节的交节时刻 | 1000 | 最大差 57 秒（2024 年前 ≤ 18 秒，之后的差来自两边对未来 ΔT 的外推不同） |
+| 真太阳时 | 80 | 最大差 44 秒（NOAA 均时差近似 vs 天文视太阳时） |
+| 起运方向 / 起运时间 | 500 | 方向全部一致；时间最大差 14.9 天（lunar-javascript 按时辰取整的口径） |
+| 首步大运、节气区间标签 | 500 | 全部一致 |
+
+这套核对发现并修复了一个真实问题：交节当天、交节时刻之前出生时，月柱是对的，但口径回执里的「节气区间」把尚未交的节当成了前一个节（旧代码 500 例中 58 例不一致）。
 
 ## 快速开始
 
@@ -110,7 +135,7 @@ npm install
 npm run dev          # http://127.0.0.1:5173
 ```
 
-桌面版（Windows，Electron 壳内嵌同一份 `dist`）：
+桌面版（Windows，Electron 壳内嵌同一份 `dist`；目前没有发布 Releases 安装包，需要本地自行打包）：
 
 ```bash
 npm run desktop        # 构建后在桌面窗口启动
@@ -133,14 +158,18 @@ npm run desktop:build  # 生成 release/ 下的便携版和安装版 exe
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run build` | 类型检查 + 生产构建到 `dist/` |
 | `npm run build:yijing` | 构建易经独立子页并放进 `public/yijing/` |
-| `npm run test:calc` | 排盘准确性回归（14 项断言） |
+| `npm run test:calc` | 排盘准确性回归（48 项断言） |
+| `npm run test:ai` | 「复制给 AI」导出自检：数据与排盘逐项一致、精简版事实齐全、临界提醒、隐私模式不含生辰、SKILL.md 同步 |
+| `npm run gen:ai-skill` | 由导出规则重新生成 `skills/fate-bazi-reader/SKILL.md` |
+| `npm run test:crosscheck` | 与独立参考实现交叉核对（500 个时刻）；`crosscheck:gen` 重新生成参考数据 |
 | `npx tsx scripts/verify-yijing.ts` | 易经引擎自检（64 卦、编码唯一、纳甲） |
-| `npm run test:e2e` | 八字端到端冒烟（20 项，需先启动 dev；可用 `BASE=` 指定地址） |
+| `npm run test:e2e` | 八字端到端冒烟（33 项，需先启动 dev；可用 `BASE=` 指定地址） |
 | `npm run test:unified` | 三模块联合冒烟（16 项，同上） |
 | `npm run export:vbook` | 竖排命书整本长图 |
+| `npm run fonts:build` | 重新生成自托管字体子集（需 Python 与 fonttools、brotli） |
 | `npm run desktop` / `desktop:build` | 桌面版运行 / 打包 |
 
-端到端测试用本机 Chrome（`puppeteer-core`），路径可用 `CHROME_PATH` 覆盖。
+端到端测试用本机 Chrome（`puppeteer-core`），路径可用 `CHROME_PATH` 覆盖。CI（`.github/workflows/ci.yml`）在每次推送时跑类型检查、`test:calc`、`test:ai`、`test:crosscheck` 与构建。
 
 ## 目录结构
 
@@ -161,6 +190,7 @@ data/yijing/
 public/
   ziwei/               # 紫微斗数子页（构建产物）与知识库
   yijing/              # 易经独立子页（build:yijing 产出）
+  fonts/               # 自托管字体子集（woff2 + CSS + OFL 许可）
 electron/              # 桌面版主进程
 scripts/               # 测试、构建辅助脚本
 docs/                  # GitHub Pages：介绍页 index.html + 在线应用 app/
@@ -185,6 +215,7 @@ npm run build:yijing && npm run build
 - **应用源码**：[MIT](./LICENSE) © 2026 Qiuizi。
 - **六十四卦原文** `data/yijing/hexagrams.json`：取自维基文库《周易》各卦页面，按页面所示 **CC BY-SA 4.0** 提供，修订号与来源链接见 [`data/yijing/SOURCE.md`](./data/yijing/SOURCE.md) 与各条记录。MIT 不覆盖这部分。
 - **天纪知识条目** `public/ziwei/knowledge/tianji/`：**CC BY-NC-SA 4.0**，见该目录的 [LICENSE.md](./public/ziwei/knowledge/tianji/LICENSE.md)。MIT 不覆盖这部分，不得商用。
+- **字体** `public/fonts/`：Noto Serif SC、Noto Sans SC、Cormorant Garamond，均为 **SIL OFL 1.1**，许可全文随目录提供。字形与 Google Fonts 版本一致，只保留 GB2312 的 6763 个汉字和仓库内实际用到的汉字（共 7115 个）；子集外的生僻字会按样式里的字体链退回系统字体（宋体 / 苹方 / 微软雅黑等）。
 - 第三方依赖（React、lunar-javascript、iztro 等）各自适用其许可证。
 
 ## 声明

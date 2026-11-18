@@ -15,8 +15,13 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "test:calc": "tsx scripts/verify-calc.ts",
+    "test:ai": "tsx scripts/verify-ai-export.ts",
+    "gen:ai-skill": "tsx scripts/gen-ai-skill.ts",
     "test:e2e": "node scripts/e2e-smoke.mjs",
     "test:unified": "node scripts/smoke-unified.mjs",
+    "test:crosscheck": "tsx scripts/crosscheck/run.ts",
+    "crosscheck:gen": "python3 scripts/crosscheck/gen_reference.py",
+    "fonts:build": "python3 scripts/fonts/build-fonts.py",
     "export:vbook": "node scripts/export-vbook-longimage.mjs"
   },
   "build": {

@@ -2,7 +2,7 @@
  * 用法：pnpm test:e2e   （可用 BASE 覆盖地址，CHROME_PATH 覆盖浏览器路径）
  */
 import puppeteer from 'puppeteer-core';
-import { mkdtempSync, readdirSync, statSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -16,6 +16,15 @@ const expect = (name, cond, extra = '') => {
 };
 
 const downloadDir = mkdtempSync(path.join(tmpdir(), 'fate-e2e-'));
+async function waitForFile(namePrefix, ext, timeoutMs = 20000) {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    const f = readdirSync(downloadDir).find((x) => x.startsWith(namePrefix) && x.endsWith(ext));
+    if (f && statSync(path.join(downloadDir, f)).size > 0) return { name: f, text: readFileSync(path.join(downloadDir, f), 'utf8') };
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return null;
+}
 async function waitForPdf(namePrefix, timeoutMs = 60000) {
   const end = Date.now() + timeoutMs;
   let last = null;
@@ -36,6 +45,7 @@ async function waitForPdf(namePrefix, timeoutMs = 60000) {
 
 const b = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--no-sandbox', '--disable-gpu'] });
 const errs = [];
+await b.defaultBrowserContext().overridePermissions(new URL(BASE).origin, ['clipboard-read', 'clipboard-write', 'clipboard-sanitized-write']);
 const p = await b.newPage();
 const cdp = await p.createCDPSession();
 await cdp.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: downloadDir });
@@ -110,6 +120,47 @@ try {
   expect('导出菜单两项且在最上层', ex.ok && ex.z);
   await p.evaluate(() => document.body.click());
 
+  // 复制给 AI：剪贴板里的提示词 + JSON 必须与页面上显示的盘一致
+  const shown = await p.evaluate(() => ({
+    glyphs: [...document.querySelectorAll('.pg .pg-gan .glyph')].map((g) => g.firstChild?.textContent?.trim() || ''),
+    shi: [...document.querySelectorAll('.pg .pg-head .shi')].map((x) => x.textContent?.trim()),
+    luck: [...document.querySelectorAll('.tf-col:first-child .tf-item .tf-gz')].map((x) => x.textContent?.trim()),
+  }));
+  const openExport = async () => {
+    await p.evaluate(() => window.scrollTo(0, 0));
+    await p.evaluate(() => { if (!document.querySelector('.export-pop')) document.querySelector('.export-btn').click(); });
+    await new Promise((r) => setTimeout(r, 150));
+  };
+  // 先下载 .json 作为数据基准，再核对剪贴板（精简版）与 .md（完整版）
+  await openExport();
+  await p.evaluate(() => document.querySelector('.export-pop .ai-json').click());
+  const jsonFile = await waitForFile('八字AI解读', '.json');
+  let aiJson = null;
+  try { aiJson = JSON.parse(jsonFile.text); } catch {}
+  const ps = aiJson ? Object.values(aiJson.pillars) : [];
+  expect('命盘数据 .json：四柱与页面一致', ps.map((x) => x.stem).concat(ps.map((x) => x.branch)).join() === shown.glyphs.join(), `${ps.map((x) => x.ganZhi)} vs ${shown.glyphs}`);
+  expect('命盘数据 .json：十神与大运与页面一致', !!aiJson && ps.map((x) => x.tenGod).join() === shown.shi.join() && aiJson.luck.pillars.map((l) => l.ganZhi).join() === shown.luck.join(), `${shown.shi} / ${shown.luck}`);
+  await openExport();
+  await p.evaluate(() => navigator.clipboard.writeText(''));
+  await p.evaluate(() => document.querySelector('.export-pop .ai-copy').click());
+  await new Promise((r) => setTimeout(r, 400));
+  const aiText = (await p.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n'); // Windows 剪贴板读回为 CRLF
+  const toastAi = await p.evaluate(() => document.querySelector('.toast')?.textContent || '');
+  const facts = ps.map((x) => x.ganZhi).concat(aiJson ? aiJson.luck.pillars.map((l) => l.ganZhi) : []);
+  expect('复制给 AI：精简提示词含规则与全部四柱大运、不附 JSON', aiText.includes('不要重新排盘') && aiText.includes('## 我想问') && !aiText.includes('```json') && facts.length > 4 && facts.every((x) => aiText.includes(x)) && toastAi.includes('已复制给 AI'), `${aiText.length} ${toastAi}`);
+  await openExport();
+  await p.evaluate(() => document.querySelector('.export-pop .ai-copy-private').click());
+  await new Promise((r) => setTimeout(r, 400));
+  const privText = (await p.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n'); // Windows 剪贴板读回为 CRLF
+  const civil = aiJson?.subject?.input?.civilTime || '';
+  expect('复制给 AI · 隐去生辰：不含出生日期时刻、保留四柱', !!civil && !privText.includes(civil.slice(0, 10)) && !privText.includes(civil.slice(11)) && ps.every((x) => privText.includes(x.ganZhi)), civil);
+  await openExport();
+  await p.evaluate(() => document.querySelector('.export-pop .ai-md').click());
+  const mdFile = await waitForFile('八字AI解读', '.md');
+  let mdJson = null;
+  try { mdJson = JSON.parse((mdFile.text.match(/```json\n([\s\S]*?)\n```/) || [])[1]); } catch {}
+  expect('AI 提示词 .md（完整版）：同一提示词并附与 .json 一致的数据', !!mdFile && mdFile.text.startsWith(aiText.split('## 计算口径')[0]) && JSON.stringify(mdJson) === JSON.stringify(aiJson), JSON.stringify({ md: mdFile?.name, json: jsonFile?.name }));
+
   // 展演
   await p.evaluate(() => document.querySelector('.showcase-btn').click());
   await new Promise((r) => setTimeout(r, 250));
@@ -130,6 +181,12 @@ try {
   expect('合盘 7 维评分', cp.dims >= 7, `got ${cp.dims}`);
   expect('合盘双方对照', cp.ims === 2, `got ${cp.ims}`);
   expect('合盘大运同步', cp.lucks);
+  await p.evaluate(() => navigator.clipboard.writeText(''));
+  await p.evaluate(() => document.querySelector('.compat-bar .result-actions .cm-ai').click());
+  await new Promise((r) => setTimeout(r, 400));
+  const cmText = (await p.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n'); // Windows 剪贴板读回为 CRLF
+  const cmLabel = await p.evaluate(() => document.querySelector('.compat-bar .result-actions .cm-ai')?.textContent || '');
+  expect('合盘复制给 AI：含双方命盘、隐去生辰', cmText.includes('八字合盘解读') && ps.every((x) => cmText.includes(x.ganZhi)) && !!civil && !cmText.includes(civil.slice(0, 10)) && cmLabel.includes('已复制'), cmLabel);
 
   // 合盘 PDF 导出：同样断言不是空白小文件
   await p.evaluate(() =>

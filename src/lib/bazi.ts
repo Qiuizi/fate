@@ -337,10 +337,11 @@ export function computeBazi(input: BaziInput, currentYear: number): BaziResult {
     weighted: Math.round(weighted[el] * 100) / 100,
   }));
 
-  // 节气
-  const prevJie: any = (lunar as any).getPrevJie(true);
-  const prevJieQi: any = (lunar as any).getPrevJieQi(true);
-  const nextJieQi: any = (lunar as any).getNextJieQi(true);
+  // 节气：按精确时刻取前后节气（wholeDay=false）。按整日取时，节气当天、交节时刻之前出生
+  // 会把尚未交的节当成「前一个节」，与按精确时刻起的月柱不一致。
+  const prevJie: any = (lunar as any).getPrevJie(false);
+  const prevJieQi: any = (lunar as any).getPrevJieQi(false);
+  const nextJieQi: any = (lunar as any).getNextJieQi(false);
 
   // 大运
   const yun = ec.getYun(input.gender === 'male' ? 1 : 0);

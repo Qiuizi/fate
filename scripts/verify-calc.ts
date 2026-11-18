@@ -173,6 +173,19 @@ for (const c of dstShiftCases) {
   if (!ok) failed++;
 }
 
+// 节气区间按精确时刻：交节当天、交节时刻之前出生，月令仍属上一个节（与月柱一致）
+// 1936-05-06 立夏交节 00:56:30（合成时刻，非真人数据）
+const jieCases: Array<{ name: string; input: Partial<BaziInput>; monthGz: string; monthJie: string; prev: string; next: string }> = [
+  { name: '1936-05-06 00:53（立夏前 3 分）', input: { year: 1936, month: 5, day: 6, hour: 0, minute: 53 }, monthGz: '壬辰', monthJie: '清明', prev: '谷雨', next: '立夏' },
+  { name: '1936-05-06 00:58（立夏后 2 分）', input: { year: 1936, month: 5, day: 6, hour: 0, minute: 58 }, monthGz: '癸巳', monthJie: '立夏', prev: '立夏', next: '小满' },
+];
+for (const c of jieCases) {
+  const r = computeBazi({ ...BASE, ...c.input }, 2026);
+  const ok = r.pillars[1].ganZhi === c.monthGz && r.jieQi.monthJie === c.monthJie && r.jieQi.prev === c.prev && r.jieQi.next === c.next && r.monthSeason.startsWith(c.monthJie + '后');
+  console.log(`${ok ? '✓' : '✗'} 节气区间 ${c.name} — 月柱 ${r.pillars[1].ganZhi}，${r.jieQi.monthJie}后，${r.jieQi.prev} → ${r.jieQi.next}`);
+  if (!ok) failed++;
+}
+
 // 损坏 / 非法输入（URL 参数、旧备份）应被整理成可计算的值，而不是抛异常白屏
 const junk = sanitizeInput({ year: 'abc', month: 13, day: 31, hour: NaN, minute: -5, longitude: 'x', utcOffset: 99 } as any, BASE);
 try {
@@ -191,4 +204,4 @@ if (feb.day !== 28) failed++;
 if (failed) {
   throw new Error(`回归失败：有 ${failed} 项未通过`);
 }
-console.log(`\n全部 ${cases.length + dstCases.length + dstShiftCases.length + 2} 项通过 ✓`);
+console.log(`\n全部 ${cases.length + dstCases.length + dstShiftCases.length + jieCases.length + 2} 项通过 ✓`);

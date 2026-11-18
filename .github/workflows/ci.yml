@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 类型检查
+        run: npm run typecheck
+      - name: 排盘回归
+        run: npm run test:calc
+      - name: 复制给 AI 导出自检
+        run: npm run test:ai
+      - name: 交叉核对（500 个合成时刻）
+        run: npm run test:crosscheck
+      - name: 构建
+        run: npm run build:yijing && npm run build

@@ -1,0 +1,41 @@
+{
+ "generated": {
+  "ephemVsSxtwlMaxSeconds": 26.4,
+  "seed": 20261117,
+  "count": 500,
+  "reference": "PyEphem 4.2.1 (solar terms, apparent solar time) + JDN arithmetic; sxtwl 2.0.7 as second check",
+  "timezone": "UTC+8 standard time, no DST"
+ },
+ "cases": 500,
+ "pillars": {
+  "checked": 4000,
+  "matched": 4000,
+  "rate": 100
+ },
+ "jie": {
+  "checked": 1000,
+  "maxDiffSeconds": 57,
+  "toleranceSeconds": 60
+ },
+ "trueSolar": {
+  "checked": 80,
+  "maxDiffSeconds": 44,
+  "toleranceSeconds": 60
+ },
+ "yun": {
+  "checked": 500,
+  "directionMismatch": 0,
+  "maxStartDiffDays": 14.9,
+  "toleranceDays": 30
+ },
+ "firstLuck": {
+  "checked": 500,
+  "matched": 500
+ },
+ "monthJieLabel": {
+  "checked": 500,
+  "matched": 500
+ },
+ "differences": {},
+ "details": []
+}

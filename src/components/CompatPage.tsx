@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BaziInput, BaziResult, computeBazi, defaultInputFromNow, lunarLeapMonthOf, resolveCivilSolar } from '../lib/bazi';
 import { chinaDSTRange, dstInputKey, dstMinusOneHour, isChinaDST } from '../lib/dstCn';
 import { ELEMENT_META } from '../lib/elements';
 import { computeCompat, type CompatResult } from '../lib/compat';
+import { buildCompatAiPrompt, copyText } from '../lib/aiExport';
 import { buildCompatReportHTML } from '../lib/compatReport';
 import { downloadFile } from '../lib/exporters';
 import { exportCompatPDF } from '../lib/pdf';
@@ -136,6 +137,22 @@ export default function CompatPage({ a, initialB, onSaveCompat, onBack }: Props)
     if (!b || !res) return;
     downloadFile('合盘报告.html', buildCompatReportHTML(a, b, res), 'text/html');
   };
+  // 复制给 AI：双方命盘 + 合盘评分；涉及另一方，默认隐去双方出生日期、时刻与地点
+  const [aiCopied, setAiCopied] = useState('');
+  const aiTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(aiTimer.current), []);
+  const copyForAI = async () => {
+    if (!b || !res) return;
+    const text = buildCompatAiPrompt(a, b, res, { privacy: true });
+    let msg = '已复制 ✓';
+    if (!(await copyText(text))) {
+      downloadFile('合盘AI解读.md', text, 'text/markdown;charset=utf-8');
+      msg = '已下载 .md';
+    }
+    setAiCopied(msg);
+    window.clearTimeout(aiTimer.current);
+    aiTimer.current = window.setTimeout(() => setAiCopied(''), 2400);
+  };
   const exportPDF = () => {
     if (!b || !res) return;
     exportCompatPDF(a, b, res, '合盘报告.pdf').catch((e) => console.warn('合盘 PDF 导出失败', e));
@@ -166,6 +183,13 @@ export default function CompatPage({ a, initialB, onSaveCompat, onBack }: Props)
             <span>以双方八字参合</span>
           </div>
         </div>
+        {res && (
+          <div className="result-actions">
+            <button className="btn-ghost cm-ai" onClick={copyForAI} title="双方命盘与合盘评分，已隐去出生日期、时刻与地点">
+              {aiCopied || '复制给 AI'}
+            </button>
+          </div>
+        )}
       </div>
 
       {!res || !b ? (

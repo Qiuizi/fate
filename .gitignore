@@ -14,3 +14,6 @@ tmp/
 *.pfx
 .vscode/
 .idea/
+
+# 字体构建缓存（scripts/fonts/build-fonts.py）
+.cache/

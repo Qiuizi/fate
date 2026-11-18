@@ -4,6 +4,7 @@ import { BaziResult } from '../lib/bazi';
 import { ELEMENT_META, Element, ELEMENTS } from '../lib/elements';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { buildChartHTML, buildChartMarkdown, chartFilename, downloadFile } from '../lib/exporters';
+import { aiFilename, buildAiPayload, buildAiPrompt, copyText } from '../lib/aiExport';
 import { buildClassicBookVerticalHTML } from '../lib/classicsReport';
 import { printHTML } from '../lib/print';
 import PillarGrid from './PillarGrid';
@@ -97,6 +98,24 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
     downloadFile(chartFilename(result, fmt === 'html' ? 'html' : 'md'), content, mime);
     setExportOpen(false);
     flash(fmt === 'html' ? '已导出 HTML 命盘（炫酷单文件）' : '已导出 Markdown（AI 友好结构化）');
+  };
+
+  // 一键导出给 AI：提示词 + 命盘数据（代码排盘，AI 只解读）
+  const copyForAI = async (privacy: boolean) => {
+    const text = buildAiPrompt(result, { privacy });
+    setExportOpen(false);
+    if (await copyText(text)) {
+      flash(privacy ? '已复制给 AI（已隐去生辰），粘贴到任意 AI 对话即可' : '已复制给 AI，粘贴到任意 AI 对话即可');
+    } else {
+      downloadFile(aiFilename(result, 'md', privacy), text, 'text/markdown;charset=utf-8');
+      flash('无法写入剪贴板，已改为下载 .md 文件');
+    }
+  };
+  const downloadForAI = (fmt: 'md' | 'json') => {
+    const content = fmt === 'md' ? buildAiPrompt(result, { detail: 'full' }) : JSON.stringify(buildAiPayload(result), null, 2);
+    downloadFile(aiFilename(result, fmt), content, fmt === 'md' ? 'text/markdown;charset=utf-8' : 'application/json;charset=utf-8');
+    setExportOpen(false);
+    flash(fmt === 'md' ? '已下载 AI 提示词（.md）' : '已下载命盘数据（.json）');
   };
 
   const navItems =
@@ -252,6 +271,22 @@ export default function ChartSheet({ result, onEdit, onOpenCompat }: Props) {
                 <button onClick={() => doExport('md')}>
                   <b>Markdown</b>
                   <small>结构化 · 便于 AI 分析</small>
+                </button>
+                <button className="ai-copy" onClick={() => copyForAI(false)}>
+                  <b>复制给 AI</b>
+                  <small>提示词 + 命盘 · 粘贴到任意 AI</small>
+                </button>
+                <button className="ai-copy-private" onClick={() => copyForAI(true)}>
+                  <b>复制给 AI · 隐去生辰</b>
+                  <small>保留四柱大运 · 不含生日时刻地点</small>
+                </button>
+                <button className="ai-md" onClick={() => downloadForAI('md')}>
+                  <b>AI 提示词 .md</b>
+                  <small>下载 · 完整版，附 JSON 数据</small>
+                </button>
+                <button className="ai-json" onClick={() => downloadForAI('json')}>
+                  <b>命盘数据 .json</b>
+                  <small>下载 · 仅结构化数据</small>
                 </button>
               </div>
             )}

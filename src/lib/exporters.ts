@@ -4,6 +4,19 @@ import { analyzeRelations } from './relations';
 import { computeShenSha } from './shensha';
 import { buildClassicBook } from './classics';
 
+/**
+ * 导出的 HTML 是独立文件：字体按绝对地址引用应用自带的 fonts/fonts-export.css
+ * （在线版即 GitHub Pages 上的同一份自托管字体，不再请求 Google Fonts）。取不到地址时只用系统字体。
+ */
+function exportFontLink(): string {
+  try {
+    const href = new URL('fonts/fonts-export.css', document.baseURI).href;
+    return `<link href="${href}" rel="stylesheet">`;
+  } catch {
+    return '';
+  }
+}
+
 const ELS: Element[] = ['木', '火', '土', '金', '水'];
 
 const esc = (s: unknown) =>
@@ -355,8 +368,7 @@ export function buildChartHTML(r: BaziResult): string {
 <html lang="zh-CN"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>四柱八字 · ${gzAll}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+${exportFontLink()}
 <style>
 :root{--ink:#e9e4d8;--dim:#9b9587;--gold:#e0b44f;--line:rgba(224,180,79,.18);--bg:#0c0d0f}
 *{margin:0;padding:0;box-sizing:border-box}

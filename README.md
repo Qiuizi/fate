@@ -6,7 +6,7 @@
 
 **八字 · 紫微 · 易经，一个外壳里的确定性排盘工具。**
 
-*A unified Chinese metaphysics workbench — BaZi (Four Pillars), Zi Wei Dou Shu and I Ching — as a web app, with an optional Windows desktop build.*
+*BaZi, Zi Wei Dou Shu and the I Ching: three deterministic charting engines in one shell, computed on the device. Use the web app, or build the Windows Electron shell locally — no installer is on Releases yet.*
 
 [![Pages](https://img.shields.io/badge/介绍页-qiuizi.github.io%2Ffate-a7772b?style=flat-square)](https://qiuizi.github.io/fate/)
 [![在线体验](https://img.shields.io/badge/在线体验-app-141519?style=flat-square)](https://qiuizi.github.io/fate/app/)
@@ -17,11 +17,29 @@
 [![Vite](https://img.shields.io/badge/Vite-8-cf9f63?style=flat-square&logo=vite&logoColor=white)](https://vite.dev)
 [![Electron](https://img.shields.io/badge/Electron-45-e8705a?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org/)
 
-[介绍页](https://qiuizi.github.io/fate/) · [在线体验](https://qiuizi.github.io/fate/app/) · [更新日志](./CHANGELOG.md)
+[介绍页](https://qiuizi.github.io/fate/) · [网页版](https://qiuizi.github.io/fate/app/) · [桌面发布页](https://github.com/Qiuizi/fate/releases) · [更新日志](./CHANGELOG.md)
 
 <img src="docs/assets/01-portal-d.png" alt="首页" width="860" />
 
 </div>
+
+## 使用
+
+两种入口，同一套排盘。计算都在本机完成：同一组输入，得到同一张盘。记录不上传。
+
+- **网页版** — 打开 [qiuizi.github.io/fate/app](https://qiuizi.github.io/fate/app/) 即用。历史只留在这台浏览器里。
+- **桌面版（Windows · Electron）** — 壳内嵌同一份页面。[发布页](https://github.com/Qiuizi/fate/releases) 目前没有安装包；有便携版或安装版时会放在该页。在此之前于本机打包：
+
+```bash
+git clone https://github.com/Qiuizi/fate.git
+cd fate
+npm install
+npm run dev            # 网页开发服务器 http://127.0.0.1:5173
+npm run desktop        # 构建后在 Electron 窗口打开
+npm run desktop:build  # Windows x64：release/ 下的便携版与安装版
+```
+
+需要 Node.js 20.19+ 或 22.12+。`desktop:build` 只配置了 Windows x64，产物名为 `Mingli-Atelier-<version>.exe`（便携版）与 `Mingli-Atelier-Setup-<version>.exe`（安装版）。仓库里还没有打好的文件。
 
 ---
 
@@ -48,6 +66,7 @@
 
 ## 目录
 
+- [使用](#使用)
 - [三个模块](#三个模块)
 - [界面预览](#界面预览)
 - [计算口径](#计算口径)
@@ -137,23 +156,7 @@
 
 ## 快速开始
 
-需要 Node.js 20.19+ 或 22.12+（Vite 8 的要求）。
-
-```bash
-git clone https://github.com/Qiuizi/fate.git
-cd fate
-npm install
-npm run dev          # http://127.0.0.1:5173
-```
-
-桌面版（Windows，Electron 壳内嵌同一份 `dist`；目前没有发布 Releases 安装包，需要本地自行打包）：
-
-```bash
-npm run desktop        # 构建后在桌面窗口启动
-npm run desktop:build  # 生成 release/ 下的便携版和安装版 exe
-```
-
-分享深链示例。两条八字链接使用同一合成生辰（公历 2000-01-01 12:00，仅供演示）。
+环境、网页地址与桌面打包见[使用](#使用)。分享深链示例。两条八字链接使用同一合成生辰（公历 2000-01-01 12:00，仅供演示）。
 
 ```
 /?y=2000&m=1&d=1&h=12&mi=0&g=male

@@ -362,6 +362,25 @@ body::before {
     font-size: 220px !important;
   }
 }
+.portal-home .portal-grid {
+  margin-bottom: clamp(40px, 6vw, 72px) !important;
+}
+.portal-foot {
+  max-width: 40em;
+  margin: 18px auto 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+.portal-foot a {
+  color: var(--ink-2);
+  border-bottom: 1px solid rgba(167, 119, 43, 0.45);
+}
+.portal-foot a:hover {
+  color: var(--gold);
+}
 
 /* ---------- 表单 ---------- */
 .form-wrap {

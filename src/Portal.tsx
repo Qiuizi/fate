@@ -19,7 +19,12 @@ export default function Portal({ onBazi, onZiwei, onYijing }: Props) {
           </h1>
           <p className="hero-sub">
             <b>八字 · 紫微 · 易经。</b>
-            以确定性内核排盘，以结构化的方式阅读。
+            三套确定性排盘，本机计算，同一组输入得到同一张盘。
+          </p>
+          <p className="portal-foot">
+            网页即用，记录只在本机。桌面版尚未发布安装包，
+            <a href="https://github.com/Qiuizi/fate/releases" target="_blank" rel="noopener noreferrer">发布页</a>
+            会在有文件时更新。
           </p>
         </section>
 
